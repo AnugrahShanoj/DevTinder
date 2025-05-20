@@ -1,30 +1,27 @@
-const adminAuth= (req,res,next)=>{
-    const token="xyz"
-    const isAuthorizedAdmin=token==="xyz"
-    try {
-        if(isAuthorizedAdmin){
-            console.log("Admin Authorized Succesfully")
-            next()
-        }
-    } catch (error) {
-        res.status(500).send("Something went wrong")
-    }
-}
+const jwt=require("jsonwebtoken")
+const User=require("../models/user")
 
-
-const userAuth=(req,res,next)=>{
-    const token="abc"
-    const isAuthorizedUser=token==="abc"
+const userAuth=async(req,res,next)=>{
+    
     try {
-        if(isAuthorizedUser){
-            console.log("User Authorized Successfully")
-            next()
+        const {token}=req.cookies
+        if(!token){
+            throw new Error("Invalid Token")
         }
+        const decodedData= await jwt.verify(token,"DEV@Tinder#412")
+        const {_id}=decodedData
+        const user= await User.findById(_id)
+        console.log(user)
+        if(!user){
+            throw new Error("User not found")
+        }
+        req.user=user
+        next()
     } catch (error) {
-        res.status(500).send("something went wrong")
+        res.status(400).send("ERROR: "+error.message)
     }
 }
 
 module.exports={
-    adminAuth,userAuth
+    userAuth
 }

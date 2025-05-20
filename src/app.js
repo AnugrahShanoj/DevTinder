@@ -5,13 +5,18 @@ const User= require("./models/user")
 const {validateSignUpData}=require('./utils/validation')
 const bcrypt=require("bcrypt")
 const validator= require("validator")
-
+const cookieParser=require('cookie-parser')
+const jwt=require("jsonwebtoken")
+const {userAuth}= require("./Middlewares/auth")
 
 // Create a server using express
 const app= express()
 
 // Middleware to handle json parsing
 app.use(express.json())
+
+// Middleware to handle cookie parsing
+app.use(cookieParser())
 
 
 // Create an instance of user model
@@ -52,11 +57,13 @@ app.post("/login",async(req,res)=>{
         if(!user){
             throw new Error("Invalid Credentials")
         }
-        const isPasswordMatch= await bcrypt.compare(password,user.password)
-        if(!isPasswordMatch){
+        const isPasswordValid= await user.validatePassword(password)
+        if(!isPasswordValid){
             throw new Error("Invalid Credentials")
         }
         else{
+            const token= await user.getJWT()
+            res.cookie("token",token,{expires:new Date(Date.now()+ 8*3600000)})
             res.send("User login successfull")
         }
     } catch (error) {
@@ -64,44 +71,18 @@ app.post("/login",async(req,res)=>{
     }
 })
 
-// API route for get user
-app.get("/user",async (req,res)=>{
-    const userEmailId= req.body.emailId
-    // console.log(userEmailId)
+// API route for get profile
+app.get("/profile",userAuth,async(req,res)=>{
     try {
-        const user= await User.find({emailId:userEmailId})
-        if(user.length===0){
-            res.status(404).send("User not found")
-        }
-        else{
-            res.send(user)
-        }
+        const user= req.user
+        res.send(user)
     } catch (error) {
-        res.status(500).send('SOmething went wrong')
+        res.status(500).send("ERROR: "+error.message)
     }
+
 })
 
 
-// API Call for update user details
-app.patch("/user/:userId", async(req,res)=>{
-    const {userId}= req.params
-    const data= req.body
-    const UPDATE_ALLOWED=["gender","age","skills"]
-    try {
-        const isAllowed= Object.keys(data).every(k=>UPDATE_ALLOWED.includes(k))
-    if(!isAllowed){
-        throw new Error("User cannot update")
-    }
-    if(data.skills.length>10){
-        throw new Error("Maximum 10 skills can be added.")
-    }
-        const user= await User.findByIdAndUpdate({_id:userId},data,{new:true})
-        // console.log(user)
-        res.send("User Updated Successfully")
-    } catch (error) {
-        res.status(400).send(error.message)
-    }
-})
 
 
 // Proper way of connecting to the DB and later listening to the server
