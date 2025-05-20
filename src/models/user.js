@@ -49,7 +49,7 @@ const userSchema= new mongoose.Schema({
         type:[String],
         default:["No Skills"]
     },
-    photoURl:{
+    photoURL:{
         type:String,
         default:"https://static.vecteezy.com/ti/vecteur-libre/p1/5544753-profil-icone-design-vecteur-gratuit-vectoriel.jpg",
         trim:true,
