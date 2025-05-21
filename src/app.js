@@ -4,6 +4,7 @@ const connectDB=require("./config/database")
 const cookieParser=require('cookie-parser')
 const authRouter=require("./routes/auth")
 const profileRouter=require("./routes/profile")
+const requestRouter=require("./routes/request")
 // Create a server using express
 const app= express()
 
@@ -16,7 +17,7 @@ app.use(cookieParser())
 // API Routes
 app.use("/",authRouter)
 app.use("/",profileRouter)
-
+app.use("/",requestRouter)
 
 // Proper way of connecting to the DB and later listening to the server
 connectDB().then(()=>{
