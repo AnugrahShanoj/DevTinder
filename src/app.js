@@ -6,8 +6,12 @@ const authRouter=require("./routes/auth")
 const profileRouter=require("./routes/profile")
 const requestRouter=require("./routes/request")
 const userRouter = require("./routes/user")
+const cors= require("cors");
 // Create a server using express
 const app= express()
+
+//Middleware to handle cors 
+app.use(cors())
 
 // Middleware to handle json parsing
 app.use(express.json())
